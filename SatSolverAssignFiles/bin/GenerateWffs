@@ -1,0 +1,34 @@
+#!/bin/bash
+# Generate set of random wffs
+
+for (( v = 10 ; v <= 1000 ; v = v * 2 ))
+do
+   (( c = (v * 42) / 10 ))
+   for (( i = 1 ; i <= 10 ; i++ ))
+   do
+      (( try = 1 ))
+      while (( ${try} ))
+      do
+         makewff -cnf 3 $v $c > TEMP.cnf
+         minisat TEMP.cnf TEMP.sol
+         if (( $(grep -c '^SAT' TEMP.sol) ))
+         then
+             mv TEMP.cnf f$(printf '%03d' $v)-$(printf '%02d' $i)-s.cnf
+             (( try = 0 ))
+         fi
+      done
+
+      (( try = 1 ))
+      while (( ${try} ))
+      do
+         makewff -cnf 3 $v $c > TEMP.cnf
+         minisat TEMP.cnf TEMP.sol
+         if (( $(grep -c '^UNS' TEMP.sol) ))
+         then
+             mv TEMP.cnf f$(printf '%03d' $v)-$(printf '%02d' $i)-u.cnf
+             (( try = 0 ))
+         fi
+      done
+
+   done
+done
