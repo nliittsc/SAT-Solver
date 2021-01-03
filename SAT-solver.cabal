@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8beaae6f3c11868d4a6fcc628373171fe7d62aa2208b78e59609feec9d257876
+-- hash: f88769d050fc3cf9d85f6411762ed209d7bd8a1de641c0042aeb2239bf3420a7
 
 name:           SAT-solver
 version:        0.1.0.0
@@ -28,7 +28,6 @@ source-repository head
 library
   exposed-modules:
       Eval
-      Lib
       SAT
       Types
   other-modules:
