@@ -27,6 +27,7 @@ dependencies:
 - directory
 - time
 - parsec
+- MonadRandom
 
 library:
   source-dirs: src

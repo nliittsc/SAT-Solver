@@ -5,13 +5,23 @@ module Eval where
 import Types
 import qualified Data.Map as Map
 
+-- takes a Map object representing a boolean assignment
+-- to some variables, and a string representing a variable
+-- and looks up the variables truth assignment (which may be
+-- empty/unassigned)
+getAssign :: TruthAssignment -> Id -> Maybe Bool
+getAssign m x = f $ Map.lookup (read x :: Int) m
+  where
+    f (Just x) = x
+    f Nothing = Nothing
 
-eval :: Formula -> Bool
-eval (Var (x, Nothing))   = error "Literal not assigned"
-eval (Var (x, Just bool)) = bool
-eval (Not f)              = not (eval f)
-eval (And f1 f2)          = eval f1 && eval f2
-eval (Or f1 f2)           = eval f1 || eval f2
+-- a pattern matching function that recursively evaluates a
+-- Boolean formula
+eval :: TruthAssignment -> Formula -> Bool
+eval t (Var (x, Nothing))   = getAssign t x == Just True
+eval t (Not f)              = not (eval t f)
+eval t (And f1 f2)          = and [eval t f1, eval t f2]
+eval t (Or f1 f2)           = or [eval t f1, eval t f2]
 
 
 

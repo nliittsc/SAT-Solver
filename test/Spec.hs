@@ -11,12 +11,15 @@ import Text.Parsec.String
 
 main :: IO ()
 main = do
+  assign <- randomAssignment 3
+  print assign
   --f <- readFile "test\\test-formulas\\satisfiable\\uf20-01.cnf"
-  --print f
+  {--print f
   result <- parseFromFile cnfFileP "test\\test-formulas\\smallcases\\f0010-02-s.cnf"
   case result of
        Left err -> print err
        Right (assignment, formula) -> do {print assignment; print formula}
+        --}
 
 
 

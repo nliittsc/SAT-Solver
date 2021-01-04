@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8d0bc008cde3f83198500ce4c7afb4f1a4099415712eded82c62ea5f73e5e316
+-- hash: bef4d35c1ec2509cfd9e757748ff527fb49ee9eb66b89a73842410d573dfd092
 
 name:           SAT-solver
 version:        0.1.0.0
@@ -36,7 +36,8 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      MonadRandom
+    , base >=4.7 && <5
     , containers
     , directory
     , mtl
@@ -53,7 +54,8 @@ executable SAT-solver-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      SAT-solver
+      MonadRandom
+    , SAT-solver
     , base >=4.7 && <5
     , containers
     , directory
@@ -72,7 +74,8 @@ test-suite SAT-solver-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      SAT-solver
+      MonadRandom
+    , SAT-solver
     , base >=4.7 && <5
     , containers
     , directory
