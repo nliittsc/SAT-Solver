@@ -3,3 +3,5 @@
 This repository is an implementation of a SAT solver algorithm in Haskell.
 
 Currently the `SatSolverAssignFiles` contains some CNF formulas in the DIMACS representation. It's apparently from a CS class, whose link is [here.](https://www.cs.rochester.edu/u/kautz/Courses/444au2010/program-sat-solver.html)
+
+Many of the test cases for this algorithm have been extracted from [here.](https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html)

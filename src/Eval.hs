@@ -5,6 +5,17 @@ module Eval where
 import Types
 import qualified Data.Map as Map
 
+
+eval :: Formula -> Bool
+eval (Var (x, Nothing))   = error "Literal not assigned"
+eval (Var (x, Just bool)) = bool
+eval (Not f)              = not (eval f)
+eval (And f1 f2)          = eval f1 && eval f2
+eval (Or f1 f2)           = eval f1 || eval f2
+
+
+
+{--
 -- initializes all literals to True
 initLiteral :: String -> Literal
 initLiteral s = ("x" ++ s', True)
@@ -26,8 +37,8 @@ makeClauseMap fmlaList = Map.fromList $ zip [1..numClause] (map init $tail fmlaL
 getLiteral :: String -> (Bool -> Bool, Int)
 getLiteral s = (q, i)
   where
-    s' = read s
-    b = read s > 0
+    s' = read s :: Int
+    b = s' > 0
     q = if b then id else not
     i = if b then s' else -1 * s'
 
@@ -47,3 +58,4 @@ evalClause dict = any (evalLiteral dict)
 -- evaluates an entire CNF
 evalCNF :: LiteralMap -> CNF -> Bool
 evalCNF assignment = all (evalClause assignment)
+--}

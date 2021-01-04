@@ -2,31 +2,45 @@ module SAT where
 
 import Data.List
 import qualified Data.Map.Strict as Map
+import Control.Monad.State
 import Types
 import Eval
 --import Data.IntMap.Strict (IntMap)
 --import qualified Data.IntMap.Strict as IntMap
 
-solver :: IO ()
-solver = putStrLn "Not implemented yet"
+bruteForceSolver :: IO ()
+bruteForceSolver = putStrLn "Not implemented yet"
 
-
-{--Note about DIMACS form:
- * 'c' in the beginning denotes a comment
- * 'p' denotes the beginning of the problem description
- * 'cnf' refers to Conjunctive Normal Form: sets clauses of at most 3 literals
- * 'cnf V C' refers to V literals, C clauses, written as CNF
- * '0' is a terminating character, it means the end of a clause
- * Literals are deliminted by a space, clauses by a newline.
- below is an example of a CNF-3-2 formula: 3 literals, 2 clauses:
-              "p cnf 3 2\n1 -3 0\n2 3 -1 0"
- and parsed to be in a [[String]] type:
- --}
+ 
 toyFormula = [["p","cnf","3","2"],["1","-3","0"],["2","3","-1","0"]]
 
+{--
+-- pass how many literals there are, the clause to be satifisfied
+bruteSolver :: Int -> CNF -> (Bool, Assignment)
+bruteSolver n cnf = ((not.null) assignment, assignment)
+  where
+    assignment = search cnf (genAllBools n)
 
+search :: CNF -> [[(Int, Bool)]] -> Assignment
+search cnf [] = Map.empty 
+search cnf (x:xs)
+  | evalCNF assignment cnf = assignment
+  | otherwise              = search cnf xs
+    where
+      assignment = Map.fromList x
 
+genAllBools :: Int -> [[(Int, Bool)]]
+genAllBools n = mapM (\v -> [(v,True),(v,False)]) [1..n]
 
+splitBy :: (Foldable t, Eq a) => a -> t a -> [[a]]
+splitBy delimiter = foldr f [[]] 
+            where f c l@(x:xs) | c == delimiter = []:l
+                               | otherwise = (c:x):xs
+-- >>> splitBy '\\' "okay\\yes"
+-- ["okay","yes"]
+
+-- >>> 2^100
+-- 1267650600228229401496703205376
 
 
 
@@ -47,3 +61,4 @@ toyFormula = [["p","cnf","3","2"],["1","-3","0"],["2","3","-1","0"]]
 -- >>> or [True]
 -- True
 
+--}

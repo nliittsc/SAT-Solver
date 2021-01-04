@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f88769d050fc3cf9d85f6411762ed209d7bd8a1de641c0042aeb2239bf3420a7
+-- hash: 8d0bc008cde3f83198500ce4c7afb4f1a4099415712eded82c62ea5f73e5e316
 
 name:           SAT-solver
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Eval
+      ParseCNF
       SAT
       Types
   other-modules:
@@ -37,6 +38,11 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
+    , mtl
+    , parsec
+    , split
+    , time
   default-language: Haskell2010
 
 executable SAT-solver-exe
@@ -50,6 +56,11 @@ executable SAT-solver-exe
       SAT-solver
     , base >=4.7 && <5
     , containers
+    , directory
+    , mtl
+    , parsec
+    , split
+    , time
   default-language: Haskell2010
 
 test-suite SAT-solver-test
@@ -64,4 +75,9 @@ test-suite SAT-solver-test
       SAT-solver
     , base >=4.7 && <5
     , containers
+    , directory
+    , mtl
+    , parsec
+    , split
+    , time
   default-language: Haskell2010
