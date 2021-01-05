@@ -74,8 +74,8 @@ randomWalk maxSteps cnf = do
     then return (isSat,gen,currTruth)
     else do
       let (badClause, gen') = getBadClause currTruth cnf gen
-      let (literal, gen'')     = pickVar currTruth badClause gen'
-      let newTruth   =  modifyAssignment currTruth literal
+      let (literal, gen'')  = pickVar currTruth badClause gen'
+      let newTruth          =  modifyAssignment currTruth literal
       put (k+1, gen'', newTruth)
       randomWalk maxSteps cnf
 
@@ -102,3 +102,23 @@ random3SAT = do
     else do
       put (k+1,gen'',params)
       random3SAT
+
+
+{- | Helper funciton to calculate how many tries one should do.
+The expected number of steps to solve the problem is O(n^(3/2) * (4/3)^n).
+Since on each 'round', 3*n steps are executed, the number of rounds
+one should try should be roughly (n^(3/2) * (4/3)^n) / (3*n).
+WARNING: This function grows extremely fast! Not recommended.
+E.g.: n=10, b=2 results in 74 tries but
+      n=50, b=2 results in 16647942 tries
+      n=100, b=2 results in 41573098802772 tries
+-}
+getMaxTries :: Int -> Int -> Int
+getMaxTries n b = m
+  where
+    n' = fromIntegral n
+    a = ceiling $ (n' ** (3/2)) * ((4/3) ** n')
+    m = (2 * a * b) `div` (3 * n)
+
+
+-- >>> 1 + 2

@@ -24,11 +24,6 @@ padBin m xs = replicate (m - length ys) 0 ++ ys
 makeTruth :: Int -> [Int] -> Truth
 makeTruth n bin = Map.fromList (zip [1..n] (map (==1) bin))
 
-
--- >>> padBin 9 $ toBin (2^(10)-1)
--- [1,1,1,1,1,1,1,1,1]
-
-
 bruteSolver :: State (Int,Int,Int,CNF) (Bool,Truth)
 bruteSolver = do
   (totalNum, currNum, numLit, formula) <- get

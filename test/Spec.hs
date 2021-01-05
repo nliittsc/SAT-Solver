@@ -31,19 +31,6 @@ bruteSolve path = do
             print "UNSATISFIED"
             print path
             return (isSat,path)
-            --print "No assignment found!"
-
-
-{- | helper to get the maximum number of tries
-upper bounds the probability that no assignment is found by (1/2)^b
-when a satisfying assignment exists
--}
-
-getMaxTries :: Int -> Int -> Int
-getMaxTries n b = 2 * a * b
-  where
-    n' = fromIntegral n
-    a = ceiling $ (n' ** (3/2)) * ((4/3) ** n')
 
 
 rndSolve :: FilePath -> IO (Bool,FilePath)
@@ -54,9 +41,7 @@ rndSolve path = do
       Right goodResult -> do
         let (numLit,numClause,cnfFormula) = goodResult
         initGen <- getStdGen
-        --let maxTries = getMaxTries numLit 1
-        --print maxTries
-        let maxTries = 5000
+        let maxTries = 100
         let clauseList = cnfToList cnfFormula
         let solverParams = (maxTries,numLit,numClause,clauseList)
         let initState = (0,initGen,solverParams)
@@ -71,17 +56,16 @@ rndSolve path = do
             print path
             return (isSat,path)
 
+
+
 count = foldl (\i v -> if v then i + 1 else i) 0
-
-
-
 
 main :: IO ()
 main = do
   start <- getCurrentTime
-  let folderPath = "test\\test-formulas\\smallAIM" :: FilePath
-  contents' <- listDirectory folderPath
-  let contents = take 5 contents'
+  let folderPath = "test\\test-formulas\\testcases" :: FilePath
+  contents <- listDirectory folderPath
+  --let contents = take 5 contents
   let folderPath' = folderPath ++ "\\" :: FilePath
   results <- mapM (rndSolve . (folderPath' ++)) contents
   let numSat = count (map fst results)

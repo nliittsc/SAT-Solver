@@ -26,11 +26,3 @@ clauseToList f                    = [f]
 cnfToList :: Formula -> [Formula]
 cnfToList (c1 `And` c2) = c1 : cnfToList c2
 cnfToList formula       = [formula]
-
--- [Var ("1",Nothing),Not (Var ("2",Nothing)),Var ("3",Nothing)]
-
---fmla = (Or (Or (Var ("1",Nothing)) (Not (Var ("2",Nothing)))) (Var ("3",Nothing)))
-
-
---fmla = And (Or (Or (Var ("1",Nothing)) (Not (Var ("2",Nothing)))) (Var ("3",Nothing))) (And (Or (Or (Var ("4",Nothing)) (Not (Var ("5",Nothing)))) (Var ("6",Nothing))) (And (Or (Or (Var ("7",Nothing)) (Not (Var ("8",Nothing)))) (Var ("9",Nothing))) (Or (Or (Var ("10",Nothing)) (Not (Var ("3",Nothing)))) (Not (Var ("7",Nothing))))))
-
