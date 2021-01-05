@@ -8,108 +8,101 @@ import Eval
 import Control.Monad (replicateM)
 import Control.Monad.Random
 
--- ad-hoc solution to generate random assignments
+------------------------------------------------------------------------
+-- Randomized 3-Sat Algorithm
+------------------------------------------------------------------------
 
-bernoulli :: RandomGen g => Rand g [Bool]
-bernoulli = getRandomRs (False, True)
-
-outcomes :: RandomGen g => Rand g [Bool]
-outcomes = do bernoulli
-
-gen = mkStdGen 193204829530
-
-g = next gen
-
--- >>> next gen
--- (2016461655,2016502347 40692)
-
-
-f = evalRand outcomes gen
-
--- ProgressCancelledException
--- >>> take 3 $ evalRand outcomes gen
--- [False,False,False]
-
-
-randomAssignment n = do
-  gen <- getStdGen
-  let values = take n $evalRand outcomes gen
-  let assign = zip [1..n] values
-  return assign
-
-
--- TODO: FIGURE OUT PSEUDO RANDOMNESS
-
--- implementation of the walkSAT algorithm
-solverWalkSAT :: Int -> CNF ->
-                 State (Int, StdGen, TruthAssignment) (Int, StdGen, TruthAssignment)
-
-solverWalkSAT maxTries cnf = do
-  s <- get
-  let k = (\(x, _, _) -> x) s
-  let gen = (\(_, x, _) -> x) s
-  let truth = (\(_, _, x) -> x) s
-  let result = eval truth cnf
-  if result || k == maxTries
-    then return s
-    else do
-      let n = length $ Map.elems truth
-      let gen' = next gen
-      --let newRandomAssign = take n $ 
-      return s
-
-
-
-
-
- 
-toyFormula = [["p","cnf","3","2"],["1","-3","0"],["2","3","-1","0"]]
-
-{--
--- pass how many literals there are, the clause to be satifisfied
-bruteSolver :: Int -> CNF -> (Bool, Assignment)
-bruteSolver n cnf = ((not.null) assignment, assignment)
+-- gets a new random assignment of truth values
+randomAssign :: Int -> StdGen -> ([Bool], StdGen)
+randomAssign 0 gen = ([], gen)
+randomAssign n gen = (bool : restOfList, gen'')
   where
-    assignment = search cnf (genAllBools n)
+    (bool, gen') = random gen :: (Bool, StdGen)
+    (restOfList, gen'') = randomAssign (n-1) gen'
 
-search :: CNF -> [[(Int, Bool)]] -> Assignment
-search cnf [] = Map.empty 
-search cnf (x:xs)
-  | evalCNF assignment cnf = assignment
-  | otherwise              = search cnf xs
-    where
-      assignment = Map.fromList x
+-- a funcion to randomly select an element from a list of elements
+randomChoice :: [a] -> StdGen -> (a, StdGen)
+randomChoice [] g = error "passed list is empty"
+randomChoice ls g = (v, g')
+  where
+    n = length ls
+    (i, g') = randomR (0, n) g
+    v = ls !! i
 
-genAllBools :: Int -> [[(Int, Bool)]]
-genAllBools n = mapM (\v -> [(v,True),(v,False)]) [1..n]
+-- assign new truth assignment
+makeNewTruth :: Int -> [Bool] -> TruthAssignment
+makeNewTruth n bools = Map.fromList (zip [1..n] bools)
 
-splitBy :: (Foldable t, Eq a) => a -> t a -> [[a]]
-splitBy delimiter = foldr f [[]] 
-            where f c l@(x:xs) | c == delimiter = []:l
-                               | otherwise = (c:x):xs
--- >>> splitBy '\\' "okay\\yes"
--- ["okay","yes"]
+-- helper to randomly select an unsatisfied clause
+getBadClause :: TruthAssignment -> [Formula] -> StdGen -> (Formula, StdGen)
+getBadClause truth cnf g = (badFmla, g')
+  where
+    (badFmla, g') = randomChoice (filter (not . eval truth) cnf) g :: (Formula, StdGen)
 
--- >>> 2^100
--- 1267650600228229401496703205376
+-- helper to randomly select an literal from the bad clause
+pickVar :: TruthAssignment -> Formula -> StdGen -> (Formula, StdGen)
+pickVar truth clause = randomChoice (clauseToList clause)
 
+-- helper to flip a boolean in a Mapping
+flipBit :: Maybe Bool -> Maybe Bool
+flipBit (Just bool) = Just (not bool)
+flipBit Nothing     = Nothing
 
-
-
--- >>> evalClause (makeLiteralMap toyFormula) ["2", "3", "-1"]
--- True
-
---makeCNFMap :: [[String]] -> Map.Map Int Clause
---makeCNFMap stringFmla = Map.fromList $ zip [1..numClause] (map f $ tail stringFmla)
---  where
---    numClause = read $ last $ head stringFmla :: Int
---    f xs = map getLiteral (init xs)
-
--- >>> makeCNFMap toyFormula
--- fromList [(1,[("x1",True),("x3",False)]),(2,[("x2",True),("x3",True),("x1",False)])]
+-- helper that consumes a literal and flips the bit
+modifyAssignment :: TruthAssignment -> Formula -> TruthAssignment
+modifyAssignment truth (Not (Var (x, _))) = Map.alter flipBit (read x) truth
+modifyAssignment truth (Var (x, _)) = Map.alter flipBit (read x) truth
+modifyAssignment truth _            = error "Did not pass a Var"
 
 
--- >>> or [True]
--- True
 
---}
+{- | This function implements the "local search" part of the stochastic local search
+    The first parameter of the `State` has type (Int, StdGen, and Truth). The first
+    `Int` is a counter, modeling how many steps have been taken (and must terminate
+    when the Int `maxSteps` is reached. The second argument, `StdGen` is a generator
+    that is used in order to do random sampling. The final argument `Truth` represents
+    the current truth assignment to the variables in the Boolean Formula.
+    
+    Finally, the second parameter of the `State` is output of the walking function.
+    The first argument `Bool` indicates whether a satisfying assignment was found
+    or not. The second `StdGen` indicates the current generator (to be threaded to
+    the solver, if needed for another round. The last argument is an assignment,
+    just in case.
+-}
+randomWalk :: Int -> [Formula] -> State (Int,StdGen,Truth) (Bool,StdGen,Truth)
+randomWalk maxSteps cnf = do
+  (k,gen,currTruth) <- get
+  let isSat = all (eval currTruth) cnf
+  if isSat || k == maxSteps
+    then return (isSat,gen,currTruth)
+    else do
+      let (badClause, gen') = getBadClause currTruth cnf gen
+      let (literal, gen'')     = pickVar currTruth badClause gen'
+      let newTruth   =  modifyAssignment currTruth literal
+      put (k+1, gen'', newTruth)
+      randomWalk maxSteps cnf
+
+{- | 'Top-level' stateful solver. This implements a 'naive' randomized 3SAT algorithm.
+      On every step, the current state is read in, a random Truth assignment
+      is generated, and then the stateful `randomWalk` computation is executed
+      obtaining a result. If `isSat` == True, then the state output is this Bool
+      and the satisfying assignment. Otherwise, update the state and try again.
+
+      If `maxTries` is reached, then the algorithm terminates, and returns a False
+      indicated that the formula is unsatisfiable (with high probability).
+ -}
+random3SAT :: State (Int,StdGen,SolverParams) (Bool,Truth)
+random3SAT = do
+  (k,gen,params) <- get
+  let (maxTries,numLit,numClause,clauseList) = params
+  let (bools, gen') = randomAssign numClause gen
+  let rndTruth = Map.fromList (zip [1..numLit] bools)
+  let maxSteps = 3 * numLit :: Int
+  let startState = (0,gen',rndTruth)
+  let (isSat,gen'',truth) = evalState (randomWalk maxSteps clauseList) startState
+  if isSat
+    then return (isSat,truth)
+    else do
+      put (k+1,gen'',params)
+      random3SAT
+  

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-x=($(grep 'p cnf' "$1"))
-echo p cnf ${x[2]} $(expr ${x[3]} + 1) > TEMP.cnf
-tail -n +2 "$2" >> TEMP.cnf
-tail -n +3 "$1" >> TEMP.cnf
-minisat TEMP.cnf TEMP.sol

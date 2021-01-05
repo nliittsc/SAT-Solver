@@ -11,8 +11,7 @@ import Text.Parsec.String
 
 main :: IO ()
 main = do
-  assign <- randomAssignment 3
-  print assign
+  print "OK"
   --f <- readFile "test\\test-formulas\\satisfiable\\uf20-01.cnf"
   {--print f
   result <- parseFromFile cnfFileP "test\\test-formulas\\smallcases\\f0010-02-s.cnf"

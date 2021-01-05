@@ -95,18 +95,17 @@ headerP = do
 
 
 -- top level parser that parses an entire .cnf file
-cnfFileP :: Parser (TruthAssignment, CNF)
+cnfFileP :: Parser (Int, Int, CNF)
 cnfFileP = do
-  --comments <- commentP `sepEndBy` space
-  --comments <- commentP
   skipMany comment
   (numLit, numClause) <- headerP
   _ <- spaces
   cnfFormula <- cnfP
-  let truthAssign = Map.fromList (zip [1..numLit] (replicate numLit Nothing))
-  return (truthAssign, cnfFormula) 
+  return (numLit, numClause, cnfFormula)
 
 
 -- for testing with a string in terminal
 parseFromString :: Parser a -> String -> Either ParseError a 
 parseFromString p = runParser p () "DUMMY"
+
+--parseFromString cnfP "1 -2 3 0\n4 -5 6 0\n7 -8 9 0\n10 -3 -7 0"-- Right 
