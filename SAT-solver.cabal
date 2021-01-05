@@ -4,14 +4,14 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bef4d35c1ec2509cfd9e757748ff527fb49ee9eb66b89a73842410d573dfd092
+-- hash: 3cda2861d53ec343a92aa20048136925e19f7f951b0267f0c1ec0f3d33d34167
 
 name:           SAT-solver
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/SAT-solver#readme>
 homepage:       https://github.com/githubuser/SAT-solver#readme
 bug-reports:    https://github.com/githubuser/SAT-solver/issues
-author:         Author name here
+author:         Nathan Liittschwager
 maintainer:     example@example.com
 copyright:      2021 Author name here
 license:        BSD3
@@ -27,8 +27,10 @@ source-repository head
 
 library
   exposed-modules:
+      BruteSolver
       Eval
       ParseCNF
+      RandomizedSolver
       SAT
       Types
   other-modules:

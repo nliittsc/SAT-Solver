@@ -2,7 +2,7 @@ name:                SAT-solver
 version:             0.1.0.0
 github:              "githubuser/SAT-solver"
 license:             BSD3
-author:              "Author name here"
+author:              "Nathan Liittschwager"
 maintainer:          "example@example.com"
 copyright:           "2021 Author name here"
 

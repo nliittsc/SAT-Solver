@@ -1,4 +1,5 @@
 module ParseCNF where
+
 import Types
 import Text.ParserCombinators.Parsec
 import qualified Data.Map as Map
@@ -108,4 +109,3 @@ cnfFileP = do
 parseFromString :: Parser a -> String -> Either ParseError a 
 parseFromString p = runParser p () "DUMMY"
 
---parseFromString cnfP "1 -2 3 0\n4 -5 6 0\n7 -8 9 0\n10 -3 -7 0"-- Right 

@@ -20,6 +20,8 @@ eval t (Or f1 f2)           = or [eval t f1, eval t f2]
 
 clauseToList :: Formula -> [Formula]
 clauseToList (f1 `Or` f2 `Or` f3) = [f1, f2, f3]
+clauseToList (f1 `Or` f2)         = [f1, f2]
+clauseToList f                    = [f]
 
 cnfToList :: Formula -> [Formula]
 cnfToList (c1 `And` c2) = c1 : cnfToList c2

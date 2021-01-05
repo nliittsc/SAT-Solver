@@ -28,12 +28,9 @@ SolverParams consists of:
 -}
 type SolverParams = (Int,Int,Int,[Formula])
 
-
 ------------------------------------------------------
 -- Data structures
 ------------------------------------------------------
-
-
 
 -- recursive data type to represent a formula
 data Formula = Var Variable
