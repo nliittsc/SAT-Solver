@@ -9,65 +9,44 @@ import qualified Data.IntMap.Lazy as IntMap
 
 -- a Map that represents a truth assignment to the variables
 type TruthMap = IntMap Bool
-
--- a Map that allows access of a particular clause
-type ClauseMap = IntMap Formula
-type Id = String
-type Variable = (Id, Maybe Bool)
-type CNF = Formula
+type ClauseMap = IntMap Clause
+type Clause = [Literal]
+type Literal = Int
+type CNF = ClauseMap
+type Formula = [Clause]
 --type Literal = Formula Not Var  -- example of a literal, probably  not needed
 
-{- | to reduce threading on stateful computations
-SolverParams consists of:
-  `maxTries :: Int` representing the stopping criterion
-  `numLit :: Int` representing the number of literals
-  `numClause :: Int` representing number of clauses
-  `[Formula]` representing a list of clauses (for evaluation and sampling)
--}
-type SolverParams = (Int,Int,Int,[Formula])
 
 ------------------------------------------------------
 -- Data structures
 ------------------------------------------------------
 
--- recursive data type to represent a formula
-data Formula = Var Variable
-             | Not Formula
-             | And Formula Formula
-             | Or Formula Formula
-             deriving (Eq, Show)
 
 ------------------------------------------------------
 -- | Helper Functions
 ------------------------------------------------------
 
-{- | These functions are used for formula evaluation
-and parsing. It just seems more helpful to keep them all
-in the same file. :)
--}
 
+getTruth :: TruthMap -> Literal -> Bool
+getTruth t x = f (IntMap.lookup k t)
+  where
+    k          = abs x :: Int
+    f (Just b) = b
+    f Nothing  = error "getTruth: No assignment to variable!"
 
-{- | takes a Map object representing a boolean assignment
-to some variables, and a string representing a variable
-and looks up the variables truth assignment (which may be
-empty/unassigned)
--}
-getAssign :: TruthMap -> Id -> Maybe Bool
-getAssign mapping x = IntMap.lookup (read x :: Int) mapping
+evalLiteral :: TruthMap -> Literal -> Bool
+evalLiteral t x
+  | x < 0     = not $ getTruth t x
+  | x > 0     = getTruth t x
+  | otherwise = error "evalLiteral: Literal is zero!"
 
--- a pattern matching function that recursively evaluates a
--- Boolean formula
-eval :: TruthMap -> Formula -> Bool
-eval t (Var (x, Nothing))   = getAssign t x == Just True
-eval t (Not f)              = not (eval t f)
-eval t (And f1 f2)          = and [eval t f1, eval t f2]
-eval t (Or f1 f2)           = or [eval t f1, eval t f2]
+evalClause :: TruthMap -> Clause -> Bool
+evalClause t c = or $ fmap (evalLiteral t) c
 
-clauseToList :: Formula -> [Formula]
-clauseToList (f1 `Or` f2 `Or` f3) = [f1, f2, f3]
-clauseToList (f1 `Or` f2)         = [f1, f2]
-clauseToList f                    = [f]
+evalFormula :: TruthMap -> Formula -> Bool
+evalFormula t formula = and $ fmap (evalClause t) formula
 
-cnfToList :: Formula -> [Formula]
-cnfToList (c1 `And` c2) = c1 : cnfToList c2
-cnfToList formula       = [formula]
+-- note: technically mapping over a IntMap object
+evalCNF :: TruthMap -> CNF -> Bool
+evalCNF t cnf = and (fmap (evalClause t) cnf)
+

@@ -1,3 +1,5 @@
+{-
+
 import System.Directory (listDirectory)
 import BruteSolver ( bruteSolver )
 import RandomizedSolver ( random3SAT )
@@ -73,3 +75,4 @@ main = do
   print numSat
   stop <- getCurrentTime
   print $ diffUTCTime stop start
+-}

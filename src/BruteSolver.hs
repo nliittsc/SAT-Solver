@@ -28,7 +28,7 @@ bruteSolver = do
   (totalNum, currNum, numLit, formula) <- get
   let bin = padBin numLit $ toBin currNum
   let truth = makeTruth numLit bin
-  let isSat = eval truth formula
+  let isSat = evalCNF truth formula
   if isSat || totalNum == currNum
     then return (isSat, truth)
     else do
