@@ -2,7 +2,6 @@
 ***
 This repository is an implementation of a SAT solver algorithm in Haskell.
 
-Currently the `SatSolverAssignFiles` contains some CNF formulas in the DIMACS representation. It's apparently from a CS class, whose link is [here.](https://www.cs.rochester.edu/u/kautz/Courses/444au2010/program-sat-solver.html)
 
 Many of the test cases for this algorithm have been extracted from [here.](https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html)
 
@@ -19,9 +18,10 @@ There are currently two modules implemented which solve SAT problems:
 
 `TODO: Implement a WalkSAT algorithm and/or DPLL`
 
-### Types
-Currently the solver uses a recursive data type
-`TODO`: Put examples
+### Types and Data Structures
+The Types here are extremely simple. The idea here is that we want to parse a `.cnf` file (DIMACS format) as literally as possible. So, formulas are read from the file and manipulated by the solver in a literal way. E.g., a `Literal` is really just an `Int`. So if `x :: Int` and `x > 0 == True`, then `x` is a positive literal, and if `x < 0 == True` then `x` is a negative literal (negating whatever its truth assignment is.) Clauses then are just `[Literal]` and a `Formula` is really just `[Clause]`.
+
+Truth assignments are stored in an `Data.IntMap`, which allows pseudo-constant time look ups and modification. Combined with Haskell's efficient `map`s over lists, a formula in Conjunctive Normal Form that has `N` clauses should evaluate in `O(N)` time (one the number of variables is large enough).
 
 ### Test Generation
 `TODO:` Write a generator for *Uniform Random 3-SAT* tests based on the following description:
@@ -30,9 +30,12 @@ Currently the solver uses a recursive data type
 
 More can be found [here.](https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/RND3SAT/descr.html)
 
+I think `QuickCheck` can be used for this?
+
 
 ### Parsing
 The solver currently expects a file to be in standard DIMACs format, as described [in this link.](https://people.sc.fsu.edu/~jburkardt/data/cnf/cnf.html)
 
 In order to parse the file into a data structure that can be used by the solver, the [parsec library](https://github.com/haskell/parsec) is used. The source code for the parsing operations can be found in `src/ParseCNF.hs`. 
 
+The parsing is basic and done very 'literally' in that the `.cnf` file essentially just encodes the a list of lists of `Literal`s (which are just `Int`s.)
