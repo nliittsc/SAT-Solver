@@ -37,7 +37,7 @@ rndSolve path = do
       Left err -> do {print err; return (False,path)}
       Right goodResult -> do
         let (numVar,numClause,cnfFormula) = goodResult
-        let maxTries = 100
+        let maxTries = 5000
         --print path
         output <- monteCarloSolver (maxTries,numVar,cnfFormula)
         let (isSAT,assignment) = output
