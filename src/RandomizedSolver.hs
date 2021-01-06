@@ -1,11 +1,10 @@
 module RandomizedSolver where
 
 import Control.Monad.State
-import Control.Monad.Random
-import qualified Data.Map as Map
+import System.Random
+import qualified Data.IntMap.Lazy as IntMap
 import Data.List
 import Types
-import Eval
 
 ------------------------------------------------------------------------
 -- | Randomized 3-Sat Algorithm
@@ -29,17 +28,17 @@ randomChoice ls g = (v, g')
     v = ls !! i
 
 -- assign new truth assignment
-makeNewTruth :: Int -> [Bool] -> Truth
-makeNewTruth n bools = Map.fromList (zip [1..n] bools)
+makeNewTruth :: Int -> [Bool] -> TruthMap
+makeNewTruth n bools = IntMap.fromAscList (zip [1..n] bools)
 
 -- helper to randomly select an unsatisfied clause
-getBadClause :: TruthAssignment -> [Formula] -> StdGen -> (Formula, StdGen)
+getBadClause :: TruthMap -> [Formula] -> StdGen -> (Formula, StdGen)
 getBadClause truth cnf g = (badFmla, g')
   where
     (badFmla, g') = randomChoice (filter (not . eval truth) cnf) g :: (Formula, StdGen)
 
 -- helper to randomly select an literal from the bad clause
-pickVar :: TruthAssignment -> Formula -> StdGen -> (Formula, StdGen)
+pickVar :: TruthMap -> Formula -> StdGen -> (Formula, StdGen)
 pickVar truth clause = randomChoice (clauseToList clause)
 
 -- helper to flip a boolean in a Mapping
@@ -48,9 +47,9 @@ flipBit (Just bool) = Just (not bool)
 flipBit Nothing     = Nothing
 
 -- helper that consumes a literal and flips the bit
-modifyAssignment :: TruthAssignment -> Formula -> TruthAssignment
-modifyAssignment truth (Not (Var (x, _))) = Map.alter flipBit (read x) truth
-modifyAssignment truth (Var (x, _)) = Map.alter flipBit (read x) truth
+modifyAssignment :: TruthMap -> Formula -> TruthMap
+modifyAssignment truth (Not (Var (x, _))) = IntMap.alter flipBit (read x) truth
+modifyAssignment truth (Var (x, _)) = IntMap.alter flipBit (read x) truth
 modifyAssignment truth _            = error "Did not pass a Var"
 
 {- | This function implements the "local search" part of the stochastic local search
@@ -66,7 +65,7 @@ modifyAssignment truth _            = error "Did not pass a Var"
     the solver, if needed for another round. The last argument is an assignment,
     just in case.
 -}
-randomWalk :: Int -> [Formula] -> State (Int,StdGen,Truth) (Bool,StdGen,Truth)
+randomWalk :: Int -> [Formula] -> State (Int,StdGen,TruthMap) (Bool,StdGen,TruthMap)
 randomWalk maxSteps cnf = do
   (k,gen,currTruth) <- get
   let isSat = all (eval currTruth) cnf
@@ -88,7 +87,7 @@ randomWalk maxSteps cnf = do
       If `maxTries` is reached, then the algorithm terminates, and returns a False
       indicated that the formula is unsatisfiable (with high probability).
  -}
-random3SAT :: State (Int,StdGen,SolverParams) (Bool,Truth)
+random3SAT :: State (Int,StdGen,SolverParams) (Bool,TruthMap)
 random3SAT = do
   (k,gen,params) <- get
   let (maxTries,numLit,numClause,clauseList) = params
@@ -119,6 +118,3 @@ getMaxTries n b = m
     n' = fromIntegral n
     a = ceiling $ (n' ** (3/2)) * ((4/3) ** n')
     m = (2 * a * b) `div` (3 * n)
-
-
--- >>> 1 + 2

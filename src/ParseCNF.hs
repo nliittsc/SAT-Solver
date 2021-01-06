@@ -1,8 +1,6 @@
 module ParseCNF where
-
 import Types
 import Text.ParserCombinators.Parsec
-import qualified Data.Map as Map
 import Data.List
 
 

@@ -1,10 +1,9 @@
 module BruteSolver where
 
 import Data.List
-import qualified Data.Map.Strict as Map
+import qualified Data.IntMap.Lazy as IntMap
 import Control.Monad.State
 import Types
-import Eval
 
 ------------------------------------------------------------------------
 -- | BruteForceSolver
@@ -21,10 +20,10 @@ padBin :: Int -> [Int] -> [Int]
 padBin m xs = replicate (m - length ys) 0 ++ ys
     where ys = take m xs
 
-makeTruth :: Int -> [Int] -> Truth
-makeTruth n bin = Map.fromList (zip [1..n] (map (==1) bin))
+makeTruth :: Int -> [Int] -> TruthMap
+makeTruth n bin = IntMap.fromAscList (zip [1..n] (map (==1) bin))
 
-bruteSolver :: State (Int,Int,Int,CNF) (Bool,Truth)
+bruteSolver :: State (Int,Int,Int,CNF) (Bool,TruthMap)
 bruteSolver = do
   (totalNum, currNum, numLit, formula) <- get
   let bin = padBin numLit $ toBin currNum

@@ -1,19 +1,17 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-
 module Types where
 
-import Data.Map as Map ( Map )
-import qualified Data.Map (lookup)
-import Prelude hiding (lookup)
+import Data.IntMap.Lazy (IntMap)
+import qualified Data.IntMap.Lazy as IntMap
 
 ------------------------------------------------------
 --  Types
 ------------------------------------------------------
 
-type TruthAssignment = Map.Map Int Bool
-type Truth = TruthAssignment    -- saves some typing
+-- a Map that represents a truth assignment to the variables
+type TruthMap = IntMap Bool
+
+-- a Map that allows access of a particular clause
+type ClauseMap = IntMap Formula
 type Id = String
 type Variable = (Id, Maybe Bool)
 type CNF = Formula
@@ -39,4 +37,37 @@ data Formula = Var Variable
              | Or Formula Formula
              deriving (Eq, Show)
 
+------------------------------------------------------
+-- | Helper Functions
+------------------------------------------------------
 
+{- | These functions are used for formula evaluation
+and parsing. It just seems more helpful to keep them all
+in the same file. :)
+-}
+
+
+{- | takes a Map object representing a boolean assignment
+to some variables, and a string representing a variable
+and looks up the variables truth assignment (which may be
+empty/unassigned)
+-}
+getAssign :: TruthMap -> Id -> Maybe Bool
+getAssign mapping x = IntMap.lookup (read x :: Int) mapping
+
+-- a pattern matching function that recursively evaluates a
+-- Boolean formula
+eval :: TruthMap -> Formula -> Bool
+eval t (Var (x, Nothing))   = getAssign t x == Just True
+eval t (Not f)              = not (eval t f)
+eval t (And f1 f2)          = and [eval t f1, eval t f2]
+eval t (Or f1 f2)           = or [eval t f1, eval t f2]
+
+clauseToList :: Formula -> [Formula]
+clauseToList (f1 `Or` f2 `Or` f3) = [f1, f2, f3]
+clauseToList (f1 `Or` f2)         = [f1, f2]
+clauseToList f                    = [f]
+
+cnfToList :: Formula -> [Formula]
+cnfToList (c1 `And` c2) = c1 : cnfToList c2
+cnfToList formula       = [formula]

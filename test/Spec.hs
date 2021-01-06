@@ -1,12 +1,9 @@
 import System.Directory (listDirectory)
-
 import BruteSolver ( bruteSolver )
 import RandomizedSolver ( random3SAT )
-import Eval
-import Data.List
 import ParseCNF
-import qualified Data.Map as Map
-import Data.Time
+import Types
+import Data.Time ( diffUTCTime, getCurrentTime )
 import Text.Parsec.String ( parseFromFile )
 import Control.Monad.Random ( getStdGen )
 import Control.Monad.State ( evalState )
@@ -24,12 +21,12 @@ bruteSolve path = do
         let (isSat,truth) = evalState bruteSolver initState
         if isSat
           then do
-            print "SATISFIED"
             print path
+            print "SATISFIED"
             return (isSat,path)
           else do
-            print "UNSATISFIED"
             print path
+            print "UNSATISFIED"
             return (isSat,path)
 
 
@@ -48,12 +45,12 @@ rndSolve path = do
         let (isSat,truth) = evalState random3SAT initState
         if isSat
           then do
-            print "SATISFIABLE"
             print path
+            print "SATISFIABLE"
             return (isSat,path)
           else do
-            print "UNSATISFIABLE"
             print path
+            print "UNSATISFIABLE"
             return (isSat,path)
 
 
@@ -65,9 +62,10 @@ main = do
   start <- getCurrentTime
   let folderPath = "test\\test-formulas\\testcases" :: FilePath
   contents <- listDirectory folderPath
-  --let contents = take 5 contents
+  let contents' = reverse contents
+  let contents'' = take 6 contents'
   let folderPath' = folderPath ++ "\\" :: FilePath
-  results <- mapM (rndSolve . (folderPath' ++)) contents
+  results <- mapM (rndSolve . (folderPath' ++)) contents''
   let numSat = count (map fst results)
   print "Number of cases:"
   print $ length results
