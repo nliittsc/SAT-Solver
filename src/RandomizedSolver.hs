@@ -10,17 +10,19 @@ import Types
 -- | Randomized 3-Sat Algorithm
 ------------------------------------------------------------------------
 
-type SolverParams = (Int, Int, Int, Formula)
+type SolverParams = (Int, Int, Formula)
 type Assignment   = TruthMap
 type SolverOutput = (Bool,Assignment)
 
 -- top level solver
-randomizedSolver :: SolverParams -> IO SolverOutput
-randomizedSolver (maxTries, numVar, numClause, formula)
+monteCarloSolver :: SolverParams -> IO SolverOutput
+monteCarloSolver (maxTries, numVar, formula)
   = do
-    g <- newStdGen
-    let possibleTruths = randomRs (0, 2^numVar-1) g :: [Int]
-    let attempts = toTruths numVar (take maxTries possibleTruths)
+    g <- getStdGen
+    let bound = 2^numVar - 1 :: Integer
+    let possibleTruths = randomRs (0, bound) g
+    let nums = take maxTries possibleTruths
+    let attempts = toTruths numVar nums
     g' <- newStdGen
     let startState = (g',numVar,attempts,formula)
     let (isSAT,truth) = evalState randomWalk startState
@@ -89,21 +91,21 @@ flipBit :: Maybe Bool -> Maybe Bool
 flipBit (Just bool) = Just (not bool)
 flipBit Nothing     = Nothing
 
-toBin :: Int -> [Int]
+toBin :: Integer -> [Integer]
 toBin 0 = [0]
 toBin 1 = [1]
 toBin n
     | n `mod` 2 == 0 = toBin (n `div` 2) ++ [0]
     | otherwise      = toBin (n `div` 2) ++ [1]
 
-padBin :: Int -> [Int] -> [Int]
+padBin :: Int -> [Integer] -> [Integer]
 padBin m xs = replicate (m - length ys) 0 ++ ys
     where ys = take m xs
 
-makeTruth :: Int -> [Int] -> TruthMap
+makeTruth :: Int -> [Integer] -> TruthMap
 makeTruth n bin = IntMap.fromAscList (zip [1..n] (map (==1) bin))
 
-toTruths :: Int -> [Int] -> [TruthMap]
+toTruths :: Int -> [Integer] -> [TruthMap]
 toTruths n attempts = fmap (makeTruth n) binaries
   where
     binaries = fmap (padBin n . toBin) attempts

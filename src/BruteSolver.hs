@@ -23,12 +23,12 @@ padBin m xs = replicate (m - length ys) 0 ++ ys
 makeTruth :: Int -> [Int] -> TruthMap
 makeTruth n bin = IntMap.fromAscList (zip [1..n] (map (==1) bin))
 
-bruteSolver :: State (Int,Int,Int,CNF) (Bool,TruthMap)
+bruteSolver :: State (Int,Int,Int,Formula) (Bool,TruthMap)
 bruteSolver = do
   (totalNum, currNum, numLit, formula) <- get
   let bin = padBin numLit $ toBin currNum
   let truth = makeTruth numLit bin
-  let isSat = evalCNF truth formula
+  let isSat = evalFormula truth formula
   if isSat || totalNum == currNum
     then return (isSat, truth)
     else do
