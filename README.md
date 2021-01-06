@@ -11,9 +11,13 @@ There are currently two modules implemented which solve SAT problems:
 
 `BruteSolver` which is the simplest complete SAT solver you can get: a bruteforce solver. If a CNF formula contains `n` variables, then there are `2^n` possible truth assignments. The brute force solver simply enumerates each assignment, and generates the assignment, then evaluates the CNF formula. It halts if a satisfying assignment is found, otherwise it continues. If none of the `2^n` assignments work, then it returns `False`.
 
-`RandomizedSolver` is a 'naive' randomized SAT solver. The solver uses a pure randomized Monte Carlo strategy. A parameter `maxTries` is chosen (currently fixed at 5000), and on each 'try', the algorithm uniformly at random generates truth assignment from the `2^n` that are possible. If the assignment works, the algorithm halts. Otherwise, a local search begins where a clause which is not satisfied is selected (at random) and a variable from that clause has its truth value randomly flipped, and the assignment is evaluated again. This latter loop continues for `3*n` steps. If no assignment is found during that time, we increment `maxTries` and try again with a new randomly generated truth assignment. This algorithm is 'incomplete' in that it will find a satisfying assignment (whenever one exists) in `E[number of steps] = O(n^(3/2) * (4/3)^n)`. This is an improvement over brute force, which requires `2^n` steps.
+`RandomizedSolver` is an efficient incomplete probabilistic solver based on [the following paper.*](https://www.math.ucsd.edu/~sbuss/CourseWeb/Math268_2007WS/schoning1999.pdf) The solver uses a pure randomized Monte Carlo strategy. A parameter `maxTries` is chosen (currently fixed at 5000), and on each 'try', the algorithm uniformly at random generates truth assignment from the `2^n` that are possible. If the assignment works, the algorithm halts. Otherwise, a local search begins where a clause which is not satisfied is selected (at random) and a variable from that clause has its truth value randomly flipped, and the assignment is evaluated again. This latter loop continues for `3*n` steps. If no assignment is found during that time, we increment `maxTries` and try again with a new randomly generated truth assignment. Accoridng to the original paper, the number of `maxTries` needed is within a polynomial factor of `(2 * (1 - 1/k))^n`. I.e., `O((4/3)^n)` attempts, which is significantly faster than the bruteforce calculation of `O(2^n)` attempts.
 
-`TODO: Implement a proper WalkSAT algorithm and/or DPLL`
+*: Paper title: `Schöning, U. (1999), "A probabilistic algorithm for k-SAT and constraint satisfaction problems", Proceedings of 40th Annual Symposium on Foundations of Computer Science, pp. 410–414,`
+
+
+
+`TODO: Implement a WalkSAT algorithm and/or DPLL`
 
 ### Types
 Currently the solver uses a recursive data type

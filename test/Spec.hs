@@ -1,14 +1,11 @@
 import System.Directory (listDirectory)
-
 import BruteSolver ( bruteSolver )
-import RandomizedSolver ( random3SAT )
-import Eval
-import Data.List
+import RandomizedSolver ( monteCarloSolver )
 import ParseCNF
-import qualified Data.Map as Map
-import Data.Time
+import Types
+import Data.Time ( diffUTCTime, getCurrentTime )
 import Text.Parsec.String ( parseFromFile )
-import Control.Monad.Random ( getStdGen )
+import System.Random
 import Control.Monad.State ( evalState )
 
 
@@ -24,12 +21,12 @@ bruteSolve path = do
         let (isSat,truth) = evalState bruteSolver initState
         if isSat
           then do
-            print "SATISFIED"
             print path
+            print "SATISFIED"
             return (isSat,path)
           else do
-            print "UNSATISFIED"
             print path
+            print "UNSATISFIED"
             return (isSat,path)
 
 
@@ -39,23 +36,20 @@ rndSolve path = do
   case result of
       Left err -> do {print err; return (False,path)}
       Right goodResult -> do
-        let (numLit,numClause,cnfFormula) = goodResult
-        initGen <- getStdGen
+        let (numVar,numClause,cnfFormula) = goodResult
         let maxTries = 100
-        let clauseList = cnfToList cnfFormula
-        let solverParams = (maxTries,numLit,numClause,clauseList)
-        let initState = (0,initGen,solverParams)
-        let (isSat,truth) = evalState random3SAT initState
-        if isSat
+        --print path
+        output <- monteCarloSolver (maxTries,numVar,cnfFormula)
+        let (isSAT,assignment) = output
+        if isSAT
           then do
-            print "SATISFIABLE"
             print path
-            return (isSat,path)
+            print "was SAT"
+            return (isSAT,path)
           else do
-            print "UNSATISFIABLE"
             print path
-            return (isSat,path)
-
+            print "was UNSAT"
+            return (isSAT,path)
 
 
 count = foldl (\i v -> if v then i + 1 else i) 0
@@ -65,9 +59,10 @@ main = do
   start <- getCurrentTime
   let folderPath = "test\\test-formulas\\testcases" :: FilePath
   contents <- listDirectory folderPath
-  --let contents = take 5 contents
+  let contents' = reverse contents
+  --let contents'' = take 6 contents'
   let folderPath' = folderPath ++ "\\" :: FilePath
-  results <- mapM (rndSolve . (folderPath' ++)) contents
+  results <- mapM (rndSolve . (folderPath' ++)) contents'
   let numSat = count (map fst results)
   print "Number of cases:"
   print $ length results

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3cda2861d53ec343a92aa20048136925e19f7f951b0267f0c1ec0f3d33d34167
+-- hash: f49e098fe6b6f12969df04180dc3affb437d421075764a7d5d0d50a5c62d848b
 
 name:           SAT-solver
 version:        0.1.0.0
@@ -28,23 +28,20 @@ source-repository head
 library
   exposed-modules:
       BruteSolver
-      Eval
       ParseCNF
       RandomizedSolver
-      SAT
       Types
   other-modules:
       Paths_SAT_solver
   hs-source-dirs:
       src
   build-depends:
-      MonadRandom
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , containers
     , directory
     , mtl
     , parsec
-    , split
+    , random
     , time
   default-language: Haskell2010
 
@@ -56,14 +53,13 @@ executable SAT-solver-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      MonadRandom
-    , SAT-solver
+      SAT-solver
     , base >=4.7 && <5
     , containers
     , directory
     , mtl
     , parsec
-    , split
+    , random
     , time
   default-language: Haskell2010
 
@@ -76,13 +72,12 @@ test-suite SAT-solver-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      MonadRandom
-    , SAT-solver
+      SAT-solver
     , base >=4.7 && <5
     , containers
     , directory
     , mtl
     , parsec
-    , split
+    , random
     , time
   default-language: Haskell2010

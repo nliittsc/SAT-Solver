@@ -1,30 +1,22 @@
 module ParseCNF where
-
 import Types
 import Text.ParserCombinators.Parsec
-import qualified Data.Map as Map
 import Data.List
 
 
--- parses a variable, without changing anything (to be transformed later)
-variableP :: Parser Variable
-variableP = do
+intP :: Parser Int
+intP = do
   n <- many1 digit
-  return (n, Nothing)
+  return (read n)
 
--- to parse a positive literal (i.e. without any negations)
-varP :: Parser Formula
-varP = do Var <$> variableP
+negIntP :: Parser Int
+negIntP = do
+  _ <- char '-'
+  x <- intP
+  return (-x)
 
--- parses a negative literal (i.e., a negated variable)
-minusVarP :: Parser Formula
-minusVarP = do
-  minus <- char '-'
-  Not <$> varP
-
--- parses either kind of variable
-literalP :: Parser Formula
-literalP = try minusVarP <|> varP
+literalP :: Parser Literal
+literalP = try negIntP <|> intP
 
 -- parses a clause with 3 variables (also consums terminating character)
 threeLitP = do
@@ -35,7 +27,7 @@ threeLitP = do
   z <- literalP
   _ <- space
   _ <- char '0'
-  return (x `Or` y `Or` z)
+  return [x, y, z]
 
 twoLitP = do
   x <- literalP
@@ -43,36 +35,41 @@ twoLitP = do
   y <- literalP
   _ <- space
   _ <- char '0'
-  return (x `Or` y)
+  return [x, y]
 
 oneLitP = do
   x <- literalP
   _ <- space
   _ <- char '0'
-  return x
+  return [x]
 
 -- parses literals seperated by a space as an 'Or' formula
-clauseP :: Parser Formula
+clauseP :: Parser Clause
 clauseP = try threeLitP <|> try twoLitP <|> oneLitP
 
 -- recursively parses a CNF formula
 baseCNFP :: Parser Formula
 baseCNFP = do
+  c <- clauseP
+  return [c]
+
+twoCNFP :: Parser Formula
+twoCNFP = do
   c1 <- clauseP
   _  <- space
   c2 <- clauseP
-  return (And c1 c2)
+  return [c1, c2]  
 
 recursiveCNFP :: Parser Formula
 recursiveCNFP = do
   c1 <- clauseP
   _  <- space
-  c2 <- try recursiveCNFP <|> try baseCNFP <|> clauseP
-  return (c1 `And` c2)
+  c2 <- try recursiveCNFP <|> try twoCNFP <|> baseCNFP 
+  return (c1 : c2)
 
 -- top level parser: either recursively solves parses or just returns a single clause
 cnfP :: Parser Formula
-cnfP = try recursiveCNFP <|> clauseP
+cnfP = try recursiveCNFP <|> baseCNFP
 
 -- to skip a comment
 comment :: Parser String
@@ -96,7 +93,7 @@ headerP = do
 
 
 -- top level parser that parses an entire .cnf file
-cnfFileP :: Parser (Int, Int, CNF)
+cnfFileP :: Parser (Int, Int, Formula)
 cnfFileP = do
   skipMany comment
   (numLit, numClause) <- headerP
@@ -108,4 +105,7 @@ cnfFileP = do
 -- for testing with a string in terminal
 parseFromString :: Parser a -> String -> Either ParseError a 
 parseFromString p = runParser p () "DUMMY"
+
+
+
 
