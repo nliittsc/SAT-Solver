@@ -3,6 +3,8 @@ module RandomizedSolver where
 import Control.Monad.State
 import qualified Data.IntMap.Lazy as IntMap
 import Data.List
+import Data.Set (Set)
+import qualified Data.Set as Set
 import System.Random
 import Types
 
@@ -24,17 +26,17 @@ monteCarloSolver (maxTries, numVar, formula)
     let nums = take maxTries possibleTruths
     let attempts = toTruths numVar nums
     g' <- newStdGen
-    let startState = (g',numVar,attempts,formula)
+    let startState = (g',numVar,attempts,Set.fromList formula)
     let (isSAT,truth) = evalState randomWalk startState
     return (isSAT,truth)
 
 type Assignments = [Assignment]
-type SolverState = (StdGen,Int,Assignments,Formula)
+type SolverState = (StdGen,Int,Assignments, Set Clause)
 
 -- Random Walk Algorithm for 3-SAT
 randomWalk :: State SolverState (Bool,Assignment)
 randomWalk = do
-  (g,numVar,rndTruths,formula) <- get
+  (g,numVar,rndTruths,clauses) <- get
   let r = uncons rndTruths
   if r == Nothing  -- no assignments to try, algorithm terminates
     then return (False,IntMap.empty)
@@ -43,44 +45,45 @@ randomWalk = do
       let Just (truth,nextTruths) = r
       let numSteps    = 3 * numVar
       let startStep   = 0
-      let searchState = (g,numSteps,startStep,truth,formula)
+      let searchState = (g,numSteps,startStep,truth,clauses)
       let (isSAT,truth',g') = evalState localSearch searchState
       if isSAT
         then return (isSAT,truth')
         else do
-          put (g',numVar,nextTruths,formula)
+          put (g',numVar,nextTruths,clauses)
           randomWalk
 
-type SearchState = (StdGen,Int,Int,Assignment,Formula)
+type SearchState = (StdGen,Int,Int,Assignment,Set Clause)
 type SearchOut   = (Bool,Assignment,StdGen)
+
 
 -- the `stochastic local search` step
 localSearch :: State SearchState SearchOut
 localSearch = do
-  (g,n,k,truth,formula) <- get
-  let isSAT = evalFormula truth formula
+  (g,n,k,truth,clauses) <- get
+  let isSAT = all (evalClause truth) clauses
   if isSAT || k > n
     then return (isSAT,truth,g)
     else do
-      let unsatClauses   = getUNSAT truth formula
+      let unsatClauses   = getUNSAT truth clauses
       let (g',badClause) = randomChoice unsatClauses g
-      let (g'',var)      = randomChoice badClause g
+      let (g'',var)      = randomChoice (Set.fromList badClause) g'
       let truth'         = modifyTruth var truth
-      put (g'',n,k+1,truth',formula)
+      put (g'',n,k+1,truth',clauses)
       localSearch
 
 -- get UNSAT clauses from list of clauses (formula)
-getUNSAT :: Assignment -> Formula -> [Clause]
-getUNSAT truth = filter (not . evalClause truth)
+getUNSAT :: Assignment -> Set Clause -> Set Clause
+getUNSAT truth = Set.filter (not . evalClause truth)
 
 -- helper to randomly get an object from list
 -- Not optimized :(
-randomChoice ::[a] -> StdGen -> (StdGen,a)
-randomChoice ls g = (g',x)
+randomChoice :: Set a -> StdGen -> (StdGen,a)
+randomChoice set g = (g',x)
   where
-    n      = length ls
+    n      = Set.size set
     (i,g') = randomR (0,n-1) g
-    x      = ls !! i
+    x      = Set.elemAt i set
 
 modifyTruth :: Literal -> Assignment -> Assignment
 modifyTruth literal = IntMap.alter flipBit x

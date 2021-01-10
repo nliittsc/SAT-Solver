@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 50c7d79b9f18a3ebdeb1ebca6342261b392f22425574f99ba0b5f93f656905fa
+-- hash: f4dd29914eef38515b285476440672ea312fdc93dbb22a1306286137ac956a20
 
 name:           SAT-solver
 version:        0.1.0.0
@@ -42,7 +42,8 @@ library
     , directory
     , mtl
     , parsec
-    , random
+    , random >=1.2
+    , splitmix >=0.1.0.3
     , time
   default-language: Haskell2010
 
@@ -60,7 +61,8 @@ executable SAT-solver-exe
     , directory
     , mtl
     , parsec
-    , random
+    , random >=1.2
+    , splitmix >=0.1.0.3
     , time
   default-language: Haskell2010
 
@@ -79,6 +81,7 @@ test-suite SAT-solver-test
     , directory
     , mtl
     , parsec
-    , random
+    , random >=1.2
+    , splitmix >=0.1.0.3
     , time
   default-language: Haskell2010

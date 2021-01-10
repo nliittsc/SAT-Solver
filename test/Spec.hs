@@ -39,7 +39,7 @@ rndSolve path = do
       Left err -> do {print err; return (False,path)}
       Right goodResult -> do
         let (numVar,numClause,cnfFormula) = goodResult
-        let maxTries = 100000
+        let maxTries = 100
         --print path
         output <- monteCarloSolver (maxTries,numVar,cnfFormula)
         let (isSAT,assignment) = output
@@ -65,28 +65,28 @@ determSolve path = do
     Left err -> do {print err; return (False,path)}
     Right goodResult -> do
       let (numLit,numClause,cnfFormula) = goodResult
-      output <- dpllSolver (numLit,numClause,cnfFormula)
+      output <- dpllSolver cnfFormula
       let isSAT = output
       if isSAT
         then do
           print path
           print "was SAT"
-          return (isSAT,path)
+          return (True,path)
         else do
           print path
           print "was UNSAT"
-          return (isSAT,path)
+          return (False,path)
 
 
 main :: IO ()
 main = do
   start <- getCurrentTime
-  let folderPath = "test\\test-formulas\\testcases\\unsat-uniform" :: FilePath
+  let folderPath = "test\\test-formulas\\testcases\\sat-uniform" :: FilePath
   contents <- listDirectory folderPath
   let contents' = reverse contents
   --let contents'' = take 6 contents'
   let folderPath' = folderPath ++ "\\" :: FilePath
-  results <- mapM (determSolve . (folderPath' ++)) contents'
+  results <- mapM (rndSolve . (folderPath' ++)) contents'
   let numSat = count (map fst results)
   print "Number of cases:"
   print $ length results

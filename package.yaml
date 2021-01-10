@@ -26,7 +26,8 @@ dependencies:
 - directory
 - time
 - parsec
-- random
+- random >= 1.2
+- splitmix >= 0.1.0.3
 
 library:
   source-dirs: src

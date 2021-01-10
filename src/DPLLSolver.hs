@@ -1,54 +1,39 @@
 module DPLLSolver where
 
 import Control.Monad.State
-import qualified Data.IntMap.Lazy as IntMap
 import Data.List
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Types
-import System.Random
 
 -- We will do this for readability first, optimize later
-type Assignment = IntMap.IntMap (Maybe Bool)
-type SolverParams = (Int,Int,Formula)
---type SolverOutPut = (Bool,Assignment)
+type SolverParams = Formula
 type SolverOutPut = Bool
-
 
 -- Currently only tests if satisfying or not
 -- does not get an assignment
 dpllSolver :: SolverParams -> IO SolverOutPut
-dpllSolver (numVar,numClause,formula) = do
-  --let initTruth = IntMap.fromList (zip [1..numVar] (replicate numVar Nothing))
-  let literals = getLiterals formula
-  let startState = (numVar,literals,formula)
-  return $ evalState dpllSearch startState
+dpllSolver formula = return $ evalState dpllSearch formula
 
-dpllSearch :: State (Int,[Int],Formula) Bool
+dpllSearch :: State Formula Bool
 dpllSearch = do
-  (numVar,literals,formula) <- get
-  -- check consistency, if consistent we win
-  if isConsistent formula
+  f <- get
+  if consistent f  -- Checks if the formula is satisfied
     then return True
     else do
-      -- check for an empty clause, if empty we lose
-      if hasEmpty formula
-        then return False
+      if hasEmpty f  -- If a clause is empty, we lose
+        then return False 
         else do
-          -- proceed with back-tracking search
-          let unitClauses = getUnitClauses formula
-          let formula' = unitPropogate formula unitClauses
-          let formula'' = pureLiteralElim formula'
-          if null formula''
+          let f'  = unitPropogate f (getUnitClauses f)
+          let f'' = pureLiteralElim f'
+          if null f''
             then return True
             else do
-              let l = chooseLiteral formula'' -- should be unassigned literal
-              let isSat1 = evalState dpllSearch (numVar,literals, [l] : formula'')
-              if isSat1
-                then return isSat1
-                else do
-                  let isSat0 = evalState dpllSearch (numVar,literals,[-l] : formula'')
-                  return isSat0
+              let l     = chooseLiteral f''
+              let isSAT = evalState dpllSearch ([l] : f'')
+              if isSAT
+                then return isSAT
+                else return $ evalState dpllSearch ([-l] : f'')
               
 -----------------------------------------------------------------
 -- Unit Propogation Functions
@@ -61,6 +46,7 @@ getUnitClauses = filter (\xs -> length xs == 1)
 unitPropogate :: Formula -> [Clause] -> Formula
 unitPropogate f ls = evalState unitPropogate' (ls,f)
 
+-- state monad will be used for updating truth assignments in later version
 unitPropogate' :: State ([Clause], Formula) Formula
 unitPropogate' = do
   (ls,f) <- get
@@ -99,11 +85,11 @@ getPureVars f = filter (isPure lits) vars
     lits = getLiterals f
     vars = getVars f
 
-isPure :: [Literal] -> Int -> Bool
+isPure :: Set Literal -> Int -> Bool
 isPure lits x
-  | x `elem` lits && (-x) `notElem` lits = True 
-  | (-x) `elem` lits && x `notElem` lits = True
-  | otherwise                            = False
+  | Set.member x    lits && Set.notMember (-x) lits = True 
+  | Set.member (-x) lits && Set.notMember x    lits = True
+  | otherwise                                       = False
 
 
 -- get all the variables out of a formula
@@ -112,6 +98,7 @@ getVars f = Set.toList $ Set.unions sets
   where
     sets = fmap (Set.fromList . fmap abs) f
 
+-- state monad will be used for updating truth assignments in later version
 pureLitElim :: State ([Int],Formula) Formula
 pureLitElim = do
   (ls,f) <- get
@@ -134,16 +121,13 @@ delPure x f = filter ((-x) `notElem`) $ filter (x `notElem`) f
 -----------------------------------------------------------------
 
 -- checks if the formula is "consistent"
-isConsistent :: Formula -> Bool
-isConsistent f
-  | null f = True
-  | onlySingletons f = evalState isConsistent' (Set.fromList lits, lits)
+consistent :: Formula -> Bool
+consistent f
+  | onlySingletons f = evalState isConsistent' (lits, Set.toList lits)
   | otherwise = False
     where
       lits = getLiterals f
 
-onlySingletons :: [[a]] -> Bool
-onlySingletons xs = all (== 1) (fmap length xs)
 
 isConsistent' :: State (Set Literal,[Literal]) Bool
 isConsistent' = do
@@ -152,13 +136,16 @@ isConsistent' = do
   if r == Nothing
     then return True
     else do
-      let Just (lit, rest) = r
-      if Set.member lit litSet && Set.member (-lit) litSet
+      let Just (l, rest) = r
+      if Set.member l litSet && Set.member (-l) litSet
         then return False
         else do
           put (litSet,rest)
           isConsistent'
 
+
+onlySingletons :: [[a]] -> Bool
+onlySingletons xs = all (== 1) (fmap length xs)
 
 hasEmpty :: Formula -> Bool
 hasEmpty f = any null f && any (not . null) f
@@ -167,11 +154,11 @@ hasEmpty f = any null f && any (not . null) f
 chooseLiteral :: Formula -> Literal
 chooseLiteral f = fst $ getMax $ zip lits (fmap (countAppear f) lits)
   where
-    lits = getLiterals f
+    lits = Set.toList $ getLiterals f
 
 -- get literals in a formula
-getLiterals :: Formula -> [Literal]
-getLiterals f = Set.toList $ Set.unions (fmap Set.fromList f)
+getLiterals :: Formula -> Set Literal
+getLiterals f = Set.unions (fmap Set.fromList f)
 
 getMax :: [(Int,Int)] -> (Int,Int)
 getMax xs = last $ sortOn snd xs
