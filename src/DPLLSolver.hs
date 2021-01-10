@@ -47,7 +47,6 @@ dpllSearch = do
               if isSat1
                 then return isSat1
                 else do
-                  let formula0 = subst formula l "neg"  -- replace all occurrences of l with 'false'
                   let isSat0 = evalState dpllSearch (numVar,literals,[-l] : formula'')
                   return isSat0
               
@@ -179,27 +178,4 @@ getMax xs = last $ sortOn snd xs
 
 countAppear :: Formula -> Literal -> Int
 countAppear f l = sum $ fmap ((\x -> if x then 1 else 0) . (l `elem`)) f
-
-subst :: Formula -> Literal -> String -> Formula
-subst f l s = case s of
-  "pos" -> posReplace f l
-  "neg" -> negReplace f l
-
--- replaces all pos/neg literals with a "true" literal
-posReplace :: Formula -> Literal -> Formula
-posReplace f l = map (replace l) f
-
--- replaces all pos/neg literals with a "false" literal
-negReplace :: Formula -> Literal -> Formula
-negReplace f l = map (replace (-l)) f
-
--- replaces all a or -a with a
-replace :: Int -> [Int] -> [Int]
-replace a [] = []
-replace a (x:xs)
-  | a == x    = a : replace a xs
-  | a == -x   = a : replace a xs
-  | otherwise = x : replace a xs
-
-
   

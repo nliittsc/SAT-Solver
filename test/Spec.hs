@@ -55,7 +55,8 @@ rndSolve path = do
 
 
 
---count = foldl (\i v -> if v then i + 1 else i) 0
+count :: [Bool] -> Integer
+count = foldl (\i v -> if v then i + 1 else i) 0
 
 determSolve :: FilePath -> IO (Bool, FilePath)
 determSolve path = do
@@ -80,18 +81,16 @@ determSolve path = do
 main :: IO ()
 main = do
   start <- getCurrentTime
-  --let folderPath = "test\\test-formulas\\aim" :: FilePath
-  --contents <- listDirectory folderPath
-  --let contents' = reverse contents
+  let folderPath = "test\\test-formulas\\testcases\\unsat-uniform" :: FilePath
+  contents <- listDirectory folderPath
+  let contents' = reverse contents
   --let contents'' = take 6 contents'
-  --let folderPath' = folderPath ++ "\\" :: FilePath
-  --results <- mapM (rndSolve . (folderPath' ++)) contents
-  --let numSat = count (map fst results)
-  --print "Number of cases:"
-  --print $ length results
-  --print "Number of SAT: "
-  --print numSat
-  let path = "test\\test-formulas\\testcases\\sat\\f0010-01-s.cnf"
-  results <- determSolve path
+  let folderPath' = folderPath ++ "\\" :: FilePath
+  results <- mapM (determSolve . (folderPath' ++)) contents'
+  let numSat = count (map fst results)
+  print "Number of cases:"
+  print $ length results
+  print "Number of SAT: "
+  print numSat
   stop <- getCurrentTime
   print $ diffUTCTime stop start
