@@ -21,6 +21,9 @@ type Formula = [Clause]
 -- Data structures
 ------------------------------------------------------
 
+-- keys: variables
+-- values: keys to clauses that contain the variable
+
 
 ------------------------------------------------------
 -- | Helper Functions

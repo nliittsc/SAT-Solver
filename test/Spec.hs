@@ -1,12 +1,14 @@
 import System.Directory (listDirectory)
 import BruteSolver ( bruteSolver )
 import RandomizedSolver ( monteCarloSolver )
+import DPLLSolver
 import ParseCNF
 import Types
 import Data.Time ( diffUTCTime, getCurrentTime )
 import Text.Parsec.String ( parseFromFile )
 import System.Random
 import Control.Monad.State ( evalState )
+--import Data.IntMap.Lazy as IntMap
 
 
 bruteSolve :: FilePath -> IO (Bool,FilePath)
@@ -37,7 +39,7 @@ rndSolve path = do
       Left err -> do {print err; return (False,path)}
       Right goodResult -> do
         let (numVar,numClause,cnfFormula) = goodResult
-        let maxTries = 5000
+        let maxTries = 100000
         --print path
         output <- monteCarloSolver (maxTries,numVar,cnfFormula)
         let (isSAT,assignment) = output
@@ -52,21 +54,44 @@ rndSolve path = do
             return (isSAT,path)
 
 
-count = foldl (\i v -> if v then i + 1 else i) 0
+
+--count = foldl (\i v -> if v then i + 1 else i) 0
+
+determSolve :: FilePath -> IO (Bool, FilePath)
+determSolve path = do
+  result <- parseFromFile cnfFileP path
+  case result of
+    Left err -> do {print err; return (False,path)}
+    Right goodResult -> do
+      let (numLit,numClause,cnfFormula) = goodResult
+      output <- dpllSolver (numLit,numClause,cnfFormula)
+      let isSAT = output
+      if isSAT
+        then do
+          print path
+          print "was SAT"
+          return (isSAT,path)
+        else do
+          print path
+          print "was UNSAT"
+          return (isSAT,path)
+
 
 main :: IO ()
 main = do
   start <- getCurrentTime
-  let folderPath = "test\\test-formulas\\testcases" :: FilePath
-  contents <- listDirectory folderPath
-  let contents' = reverse contents
+  --let folderPath = "test\\test-formulas\\aim" :: FilePath
+  --contents <- listDirectory folderPath
+  --let contents' = reverse contents
   --let contents'' = take 6 contents'
-  let folderPath' = folderPath ++ "\\" :: FilePath
-  results <- mapM (rndSolve . (folderPath' ++)) contents'
-  let numSat = count (map fst results)
-  print "Number of cases:"
-  print $ length results
-  print "Number of SAT: "
-  print numSat
+  --let folderPath' = folderPath ++ "\\" :: FilePath
+  --results <- mapM (rndSolve . (folderPath' ++)) contents
+  --let numSat = count (map fst results)
+  --print "Number of cases:"
+  --print $ length results
+  --print "Number of SAT: "
+  --print numSat
+  let path = "test\\test-formulas\\testcases\\sat\\f0010-01-s.cnf"
+  results <- determSolve path
   stop <- getCurrentTime
   print $ diffUTCTime stop start

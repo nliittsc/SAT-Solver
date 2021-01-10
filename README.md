@@ -23,6 +23,8 @@ The Types here are extremely simple. The idea here is that we want to parse a `.
 
 Truth assignments are stored in an `Data.IntMap`, which allows pseudo-constant time look ups and modification. Combined with Haskell's efficient `map`s over lists, a formula in Conjunctive Normal Form that has `N` clauses should evaluate in `O(N)` time (one the number of variables is large enough).
 
+`TODO:` Adjust data structures and parsing, so that variables in the `.cnf` file are not required to be contiguous. E.g., one could pass `1 5 3 0` as a clause instead of `1 2 3 0`. Strategy: get a list of variables directly from the parsing process, instead of just the number of variables
+
 ### Test Generation
 `TODO:` Write a generator for *Uniform Random 3-SAT* tests based on the following description:
 
