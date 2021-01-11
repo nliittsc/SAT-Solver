@@ -28,6 +28,7 @@ dependencies:
 - parsec
 - random >= 1.2
 - splitmix >= 0.1.0.3
+- QuickCheck >= 2.14.0
 
 library:
   source-dirs: src

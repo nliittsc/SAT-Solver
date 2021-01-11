@@ -2,8 +2,18 @@
 ***
 This repository is an implementation of a SAT solver algorithm in Haskell.
 
+Many of the test cases for this algorithm have been extracted from [here,](https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html) as well as using an algorithm to generate small random formulas, which can be checked against a brute-force solver.
 
-Many of the test cases for this algorithm have been extracted from [here.](https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html)
+`TODO:`
+- [ ] Finish Main API
+- [x] Write a randomized solver
+- [ ] Write an actually good randomized solver
+- [x] Write a simple DPLL solver
+- [ ] Write an actually good DPLL solver
+- [x] Write test suite skeleton
+- [x] Write a parser for `.cnf` files
+- [ ] Get some other people to test this library
+
 
 ### The Solvers
 There are currently two modules implemented which solve SAT problems:
@@ -14,9 +24,20 @@ There are currently two modules implemented which solve SAT problems:
 
 *: Paper title: `Schöning, U. (1999), "A probabilistic algorithm for k-SAT and constraint satisfaction problems", Proceedings of 40th Annual Symposium on Foundations of Computer Science, pp. 410–414,`
 
+`TODO:`
+- [x] implement simple Monte Carlo solver
+- [ ] Get random sampling down to `O(1)` time (maybe using the `vector` library)
+- [ ] Add randomized solver to the main API
 
 
-`TODO: Implement a WalkSAT algorithm and/or DPLL`
+`DPLLSolver` is a deterministic 'complete' SAT solver which follows the [Davis–Putnam–Logemann–Loveland (DPLL)](https://en.wikipedia.org/wiki/DPLL_algorithm) family of algorithms. This solver is currently relatively simple and unoptimized, solving the problem sequentially and only returning whether the formula is SAT or UNSAT, but still quite a bit faster than brute force. It takes advantage of Unit Propogation and Pure Literal Elimination. Variable splitting is done by a greedy strategy: choosing the literal `l` which appears in the largest number of clauses.
+
+`TODO:`
+- [ ] Add Randomized Restarts
+- [ ] Profile and Optimize Implementation
+- [ ] Research and pick a better strategy for `chooseLiteral` step
+- [ ] Rewrite solver to return a satisfying assignment (if one exists)
+- [ ] Add DPLL solver to the main API
 
 ### Types and Data Structures
 The Types here are extremely simple. The idea here is that we want to parse a `.cnf` file (DIMACS format) as literally as possible. So, formulas are read from the file and manipulated by the solver in a literal way. E.g., a `Literal` is really just an `Int`. So if `x :: Int` and `x > 0 == True`, then `x` is a positive literal, and if `x < 0 == True` then `x` is a negative literal (negating whatever its truth assignment is.) Clauses then are just `[Literal]` and a `Formula` is really just `[Clause]`.
@@ -26,13 +47,15 @@ Truth assignments are stored in an `Data.IntMap`, which allows pseudo-constant t
 `TODO:` Adjust data structures and parsing, so that variables in the `.cnf` file are not required to be contiguous. E.g., one could pass `1 5 3 0` as a clause instead of `1 2 3 0`. Strategy: get a list of variables directly from the parsing process, instead of just the number of variables
 
 ### Test Generation
-`TODO:` Write a generator for *Uniform Random 3-SAT* tests based on the following description:
+Test Generation is done by the following description.
 
 `Uniform Random-3-SAT is a family of SAT problems distributions obtained by randomly generating 3-CNF formulae in the following way: For an instance with n variables and k clauses, each of the k clauses is constructed from 3 literals which are randomly drawn from the 2n possible literals (the n variables and their negations) such that each possible literal is selected with the same probability of 1/2n. Clauses are not accepted for the construction of the problem instance if they contain multiple copies of the same literal or if they are tautological (i.e., they contain a variable and its negation as a literal). Each choice of n and k thus induces a distribution of Random-3-SAT instances. Uniform Random-3-SAT is the union of these distributions over all n and k.`
 
 More can be found [here.](https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/RND3SAT/descr.html)
 
-I think `QuickCheck` can be used for this?
+Random formulas with `n=20` variables and `k=50` clauses are sampled with `QuickCheck`, then solved with a brute-force solver, producing a `Bool` on whether the formula is satisfiable or not. Then, another complete solver (DPLL in this case) solves the same formula, and gets an answer, and these two answers are compared. Note: Letting the number of variables get larger than 20 results in some issues -- brute force solving is very slow.
+
+`TODO:` Generate random formulas that are satisfiable by construction, for the purpose of testing incomplete algorithms.
 
 
 ### Parsing

@@ -92,11 +92,7 @@ isPure lits x
   | otherwise                                       = False
 
 
--- get all the variables out of a formula
-getVars :: Formula -> [Int]
-getVars f = Set.toList $ Set.unions sets
-  where
-    sets = fmap (Set.fromList . fmap abs) f
+
 
 -- state monad will be used for updating truth assignments in later version
 pureLitElim :: State ([Int],Formula) Formula

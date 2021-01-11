@@ -65,16 +65,18 @@ localSearch = do
   if isSAT || k > n
     then return (isSAT,truth,g)
     else do
-      let unsatClauses   = getUNSAT truth clauses
-      let (g',badClause) = randomChoice unsatClauses g
-      let (g'',var)      = randomChoice (Set.fromList badClause) g'
+      let (g',g'')       = split g
+      let (g''',g'''')   = split g'
+      let unsatClauses   = getBroken truth clauses
+      let (_,badClause) = randomChoice unsatClauses g''
+      let (_,var)      = randomChoice (Set.fromList badClause) g'''
       let truth'         = modifyTruth var truth
-      put (g'',n,k+1,truth',clauses)
+      put (g'''',n,k+1,truth',clauses)
       localSearch
 
 -- get UNSAT clauses from list of clauses (formula)
-getUNSAT :: Assignment -> Set Clause -> Set Clause
-getUNSAT truth = Set.filter (not . evalClause truth)
+getBroken :: Assignment -> Set Clause -> Set Clause
+getBroken truth = Set.filter (not . evalClause truth)
 
 -- helper to randomly get an object from list
 -- Not optimized :(
@@ -82,7 +84,7 @@ randomChoice :: Set a -> StdGen -> (StdGen,a)
 randomChoice set g = (g',x)
   where
     n      = Set.size set
-    (i,g') = randomR (0,n-1) g
+    (i,g') = uniformR (0,n-1) g
     x      = Set.elemAt i set
 
 modifyTruth :: Literal -> Assignment -> Assignment

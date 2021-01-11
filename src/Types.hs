@@ -2,6 +2,7 @@ module Types where
 
 import Data.IntMap.Lazy (IntMap)
 import qualified Data.IntMap.Lazy as IntMap
+import qualified Data.Set as Set
 
 ------------------------------------------------------
 --  Types
@@ -29,6 +30,11 @@ type Formula = [Clause]
 -- | Helper Functions
 ------------------------------------------------------
 
+-- get all the variables out of a formula
+getVars :: Formula -> [Int]
+getVars f = Set.toList $ Set.unions sets
+  where
+    sets = fmap (Set.fromList . fmap abs) f
 
 getTruth :: TruthMap -> Literal -> Bool
 getTruth t x = f (IntMap.lookup k t)
