@@ -104,7 +104,7 @@ cnfFileP = do
 
 -- for testing with a string in terminal
 parseFromString :: Parser a -> String -> Either ParseError a 
-parseFromString p = runParser p () "DUMMY"
+parseFromString p = runParser p () "Not a valid .cnf file!"
 
 
 

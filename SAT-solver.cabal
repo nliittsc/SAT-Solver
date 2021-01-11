@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c6b1827780bec9a7b365780509a53b2951fe425087b51153e479054b1e683a21
+-- hash: 96193a8dfb3ce0120b010ac445213257b540f1973212fe70d5e4056cf54f0152
 
 name:           SAT-solver
 version:        0.1.0.0
@@ -29,7 +29,6 @@ library
   exposed-modules:
       BruteSolver
       DPLLSolver
-      MyTests
       ParseCNF
       RandomizedSolver
       Types
@@ -38,10 +37,11 @@ library
   hs-source-dirs:
       src
   build-depends:
-      QuickCheck >=2.14.0
+      QuickCheck
     , base >=4.7 && <5
     , containers
     , directory
+    , hspec
     , mtl
     , parsec
     , random >=1.2
@@ -57,11 +57,12 @@ executable SAT-solver-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      QuickCheck >=2.14.0
+      QuickCheck
     , SAT-solver
     , base >=4.7 && <5
     , containers
     , directory
+    , hspec
     , mtl
     , parsec
     , random >=1.2
@@ -78,11 +79,12 @@ test-suite SAT-solver-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      QuickCheck >=2.14.0
+      QuickCheck
     , SAT-solver
     , base >=4.7 && <5
     , containers
     , directory
+    , hspec
     , mtl
     , parsec
     , random >=1.2
